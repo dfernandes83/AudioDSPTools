@@ -92,6 +92,7 @@ iPlug 2 includes the following 3rd party libraries (see each license info):
 #include <utility>
 #include <cmath>
 #include <cstring>
+#include <numbers>
 
 #if defined AUDIODSPTOOLS_SIMDE
   #if defined(__arm64__)
@@ -159,7 +160,7 @@ public:
       if (std::fabs(x) < 1e-7)
         return T(1.0);
 
-      const auto pi = iplug::PI;
+      const auto pi = std::numbers::pi_v<double>;
       return T(A * std::sin(pi * x) * std::sin(pi * x / A) / (pi * pi * x * x));
     };
 
