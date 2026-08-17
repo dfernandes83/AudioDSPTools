@@ -33,7 +33,8 @@ public:
   // This object instance will own the data referenced by the pointers and be
   // responsible for its allocation and deallocation.
   virtual DSP_SAMPLE** Process(DSP_SAMPLE** inputs, const size_t numChannels, const size_t numFrames) = 0;
-  // Update the parameters of the DSP object according to the provided params.
+  // Pre-allocates buffer capacity so Process() never allocates on variable block sizes <= numFrames
+  void PrepareBuffers(const size_t numChannels, const size_t numFrames);
   // Not declaring a pure virtual bc there's no concrete definition that can
   // use Params.
   // But, use this name :)

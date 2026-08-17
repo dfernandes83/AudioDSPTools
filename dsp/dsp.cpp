@@ -55,21 +55,24 @@ DSP_SAMPLE** dsp::DSP::_GetPointers()
   return this->mOutputPointers;
 }
 
+void dsp::DSP::PrepareBuffers(const size_t numChannels, const size_t numFrames)
+{
+  this->_PrepareBuffers(numChannels, numFrames);
+}
+
 void dsp::DSP::_PrepareBuffers(const size_t numChannels, const size_t numFrames)
 {
-  const size_t oldFrames = this->_GetNumFrames();
   const size_t oldChannels = this->_GetNumChannels();
-
-  const bool resizeChannels = oldChannels != numChannels;
-  const bool resizeFrames = resizeChannels || (oldFrames != numFrames);
-  if (resizeChannels)
+  if (oldChannels != numChannels)
   {
     this->mOutputs.resize(numChannels);
     this->_ResizePointers(numChannels);
   }
-  if (resizeFrames)
-    for (auto c = 0; c < numChannels; c++)
+  for (size_t c = 0; c < numChannels; c++)
+  {
+    if (this->mOutputs[c].size() < numFrames)
       this->mOutputs[c].resize(numFrames);
+  }
 }
 
 void dsp::DSP::_ResizePointers(const size_t numChannels)
