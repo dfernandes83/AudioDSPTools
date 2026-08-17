@@ -54,16 +54,20 @@ iPlug 2 includes the following 3rd party libraries (see each license info):
 #include <cmath>
 #include <vector>
 
-#ifndef DEFAULT_BLOCK_SIZE
-  #define DEFAULT_BLOCK_SIZE 1024
-#endif
-
 #include "Dependencies/WDL/ptrlist.h"
 
 #include "Dependencies/LanczosResampler.h"
 
 namespace dsp
 {
+/// Default value of ResamplingContainer::Reset()'s blockSize parameter when the caller doesn't
+/// pass one explicitly. A scoped C++20 constant rather than a preprocessor macro: a `#define`
+/// here would leak into every translation unit that includes this header (it was never
+/// `#undef`'d), risking a collision with an unrelated `DEFAULT_BLOCK_SIZE` from iPlug2 or
+/// elsewhere, and reintroducing the exact include-order coupling this fork's headers were
+/// otherwise cleaned up to not depend on.
+inline constexpr int kDefaultBlockSize = 1024;
+
 
 /** A multi-channel real-time resampling container that can be used to resample
  * audio processing to a specified sample rate for the situation where you have
@@ -107,7 +111,7 @@ public:
   // :param inputSampleRate: The external sample rate interacting with this object.
   // :param blockSize: The largest block size that will be given to this class to process until Reset()  is called
   //     again.
-  void Reset(double inputSampleRate, int blockSize = DEFAULT_BLOCK_SIZE)
+  void Reset(double inputSampleRate, int blockSize = kDefaultBlockSize)
   {
     if (mInputSampleRate == inputSampleRate && mMaxBlockSize == blockSize)
     {
