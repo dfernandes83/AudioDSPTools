@@ -14,9 +14,9 @@
 
 recursive_linear_filter::Base::Base(const size_t inputDegree, const size_t outputDegree)
 : dsp::DSP()
-, mInputStart(inputDegree)
+, mInputStart(static_cast<long>(inputDegree))
 , // 1 is subtracted before first use
-mOutputStart(outputDegree)
+mOutputStart(static_cast<long>(outputDegree))
 {
   this->mInputCoefficients.resize(inputDegree);
   this->mOutputCoefficients.resize(outputDegree);
@@ -45,7 +45,7 @@ DSP_SAMPLE** recursive_linear_filter::Base::Process(DSP_SAMPLE** inputs, const s
       // Compute input terms
       inputStart -= 1;
       if (inputStart < 0)
-        inputStart = inputDegree - 1;
+        inputStart = static_cast<long>(inputDegree) - 1;
       this->mInputHistory[c][inputStart] = inputs[c][s]; // Store current input
       for (auto i = 0; i < inputDegree; i++)
         out += this->mInputCoefficients[i] * this->mInputHistory[c][(inputStart + i) % inputDegree];
@@ -53,7 +53,7 @@ DSP_SAMPLE** recursive_linear_filter::Base::Process(DSP_SAMPLE** inputs, const s
       // Output terms
       outputStart -= 1;
       if (outputStart < 0)
-        outputStart = outputDegree - 1;
+        outputStart = static_cast<long>(outputDegree) - 1;
       for (auto i = 1; i < outputDegree; i++)
         out += this->mOutputCoefficients[i] * this->mOutputHistory[c][(outputStart + i) % outputDegree];
       // Prevent a NaN from jamming the filter!

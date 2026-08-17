@@ -220,7 +220,7 @@ dsp::wav::LoadReturnCode ReadFmtChunk(std::ifstream& wavFile, WaveFileData& wfd,
     wfd.fmtChunk.extensible.channelMask = read_u32();
     std::uint8_t guid[16];
     wavFile.read((char*)guid, 16);
-    wfd.fmtChunk.extensible.subFormat = guid[1] << 8 | guid[0];
+    wfd.fmtChunk.extensible.subFormat = static_cast<std::uint32_t>(guid[1] << 8 | guid[0]);
     bytesRead += cbSize + 2; // Don't forget the 2 for the cbSize itself!
   }
 

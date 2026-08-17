@@ -71,7 +71,7 @@ void dsp::ResampleCubic(const std::vector<T>& inputs, const double originalSampl
 
     // Use cubic interpolation to estimate the value of the audio signal at the
     // current time in the resampled audio file
-    T resampledValue = dsp::_CubicInterpolation(p, timeDifference / timeIncrement);
+    T resampledValue = static_cast<T>(dsp::_CubicInterpolation(p, timeDifference / timeIncrement));
 
     // Add the estimated value to the resampled audio file
     outputs.push_back(resampledValue);

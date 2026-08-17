@@ -77,7 +77,7 @@ void dsp::ImpulseResponse::_SetWeights()
   // Gain reduction.
   // https://github.com/sdatkinson/NeuralAmpModelerPlugin/issues/100#issuecomment-1455273839
   // Add sample rate-dependence
-  const float gain = pow(10, -18 * 0.05) * 48000 / mSampleRate;
+  const float gain = static_cast<float>(pow(10, -18 * 0.05) * 48000 / mSampleRate);
   for (size_t i = 0, j = irLength - 1; i < irLength; i++, j--)
     this->mWeight[j] = gain * this->mResampled[i];
   this->mHistoryRequired = irLength - 1;
