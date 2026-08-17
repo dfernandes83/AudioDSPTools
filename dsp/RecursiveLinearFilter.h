@@ -10,9 +10,8 @@
 
 #include "dsp.h"
 #include <cmath> // pow, sin
+#include <numbers>
 #include <vector>
-
-#define MATH_PI 3.14159265358979323846
 
 // TODO refactor base DSP into a common abstraction.
 
@@ -90,7 +89,7 @@ public:
   // Parameters defined in
   // https://webaudio.github.io/Audio-EQ-Cookbook/audio-eq-cookbook.html
   double GetA() const { return pow(10.0, this->mGainDB / 40.0); };
-  double GetOmega0() const { return 2.0 * MATH_PI * this->mFrequency / this->mSampleRate; };
+  double GetOmega0() const { return 2.0 * std::numbers::pi_v<double> * this->mFrequency / this->mSampleRate; };
   double GetAlpha(const double omega_0) const { return sin(omega_0) / (2.0 * this->mQuality); };
   double GetCosW(const double omega_0) const { return cos(omega_0); };
 
@@ -143,7 +142,7 @@ public:
 
   double GetAlpha() const
   {
-    const double c = 2.0 * MATH_PI * mFrequency / mSampleRate;
+    const double c = 2.0 * std::numbers::pi_v<double> * mFrequency / mSampleRate;
     return 1.0 / (c + 1.0);
   };
 
@@ -178,7 +177,7 @@ public:
 
   double GetAlpha() const
   {
-    const double c = 2.0 * MATH_PI * mFrequency / mSampleRate;
+    const double c = 2.0 * std::numbers::pi_v<double> * mFrequency / mSampleRate;
     return c / (c + 1.0);
   };
 
