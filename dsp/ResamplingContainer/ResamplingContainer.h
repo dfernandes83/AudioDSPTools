@@ -51,6 +51,13 @@ iPlug 2 includes the following 3rd party libraries (see each license info):
 // #include "IPlugPlatform.h"
 
 // #include "heapbuf.h"
+#include <cmath>
+#include <vector>
+
+#ifndef DEFAULT_BLOCK_SIZE
+  #define DEFAULT_BLOCK_SIZE 1024
+#endif
+
 #include "Dependencies/WDL/ptrlist.h"
 
 #include "Dependencies/LanczosResampler.h"
