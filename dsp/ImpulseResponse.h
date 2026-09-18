@@ -39,6 +39,10 @@ private:
   // Keep a copy of the raw audio that was loaded so that it can be resampled
   std::vector<float> mRawAudio;
   double mRawAudioSampleRate;
+  // This class's own Process()/_SetWeights() stay mono-only regardless (channel 1+ just copies
+  // channel 0's output, see Process()) -- kept only so GetData() can round-trip a stereo source's
+  // channel count honestly for a caller that reads it back out without ever calling Process() here.
+  int mRawNumChannels = 1;
   // Resampled to the required sample rate.
   std::vector<float> mResampled;
   double mSampleRate;
@@ -52,6 +56,9 @@ struct dsp::ImpulseResponse::IRData
 {
   std::vector<float> mRawAudio;
   double mRawAudioSampleRate;
+  // 1 = mono, 2 = true stereo (mRawAudio interleaved L,R,L,R,...). Default 1 for source
+  // compatibility with any code that never sets it. dsp::wav::Load() never returns anything else.
+  int mNumChannels = 1;
 };
 
 }; // namespace dsp

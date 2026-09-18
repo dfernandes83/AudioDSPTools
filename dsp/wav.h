@@ -35,10 +35,16 @@ enum class LoadReturnCode
 std::string GetMsgForLoadReturnCode(LoadReturnCode rc);
 
 // Load a WAV file into a provided array of doubles,
-// And note the sample rate.
+// and note the sample rate and channel count.
+//
+// Mono (1) and stereo (2) files are accepted; `audio` comes back interleaved
+// channel-in-the-inner-loop (L,R,L,R,... for stereo) -- callers that need
+// independent per-channel data (e.g. true-stereo IR convolution) deinterleave
+// it themselves. 3+ channel files are rejected (ERROR_NOT_MONO); there is no
+// defined use for anything beyond stereo in this codebase.
 //
 // Returns: as per return cases above
-LoadReturnCode Load(const char* fileName, std::vector<float>& audio, double& sampleRate);
+LoadReturnCode Load(const char* fileName, std::vector<float>& audio, double& sampleRate, int& numChannels);
 
 // Load samples, 16-bit
 void _LoadSamples16(std::ifstream& wavFile, const int chunkSize, std::vector<float>& samples);

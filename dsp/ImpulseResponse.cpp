@@ -15,7 +15,7 @@ dsp::ImpulseResponse::ImpulseResponse(const char* fileName, const double sampleR
 , mSampleRate(sampleRate)
 {
   // Try to load the WAV
-  this->mWavState = dsp::wav::Load(fileName, this->mRawAudio, this->mRawAudioSampleRate);
+  this->mWavState = dsp::wav::Load(fileName, this->mRawAudio, this->mRawAudioSampleRate, this->mRawNumChannels);
   if (this->mWavState != dsp::wav::LoadReturnCode::SUCCESS)
   {
     std::stringstream ss;
@@ -32,6 +32,7 @@ dsp::ImpulseResponse::ImpulseResponse(const IRData& irData, const double sampleR
 {
   this->mRawAudio = irData.mRawAudio;
   this->mRawAudioSampleRate = irData.mRawAudioSampleRate;
+  this->mRawNumChannels = irData.mNumChannels;
   this->_SetWeights();
 }
 
@@ -88,5 +89,6 @@ dsp::ImpulseResponse::IRData dsp::ImpulseResponse::GetData()
   IRData irData;
   irData.mRawAudio = this->mRawAudio;
   irData.mRawAudioSampleRate = this->mRawAudioSampleRate;
+  irData.mNumChannels = this->mRawNumChannels;
   return irData;
 }

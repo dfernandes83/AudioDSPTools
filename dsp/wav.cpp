@@ -123,7 +123,7 @@ std::string dsp::wav::GetMsgForLoadReturnCode(LoadReturnCode retCode)
     case (LoadReturnCode::ERROR_UNSUPPORTED_FORMAT_ALAW): message << "Unsupported file format \"A-law\""; break;
     case (LoadReturnCode::ERROR_UNSUPPORTED_FORMAT_MULAW): message << "Unsupported file format \"mu-law\""; break;
     case (LoadReturnCode::ERROR_UNSUPPORTED_FORMAT_OTHER): message << "Unsupported file format."; break;
-    case (LoadReturnCode::ERROR_NOT_MONO): message << "File is not mono."; break;
+    case (LoadReturnCode::ERROR_NOT_MONO): message << "File must be mono or stereo."; break;
     case (LoadReturnCode::ERROR_UNSUPPORTED_BITS_PER_SAMPLE): message << "Unsupported bits per sample"; break;
     case (dsp::wav::LoadReturnCode::ERROR_OTHER): message << "???"; break;
     default: message << "???"; break;
@@ -193,11 +193,13 @@ dsp::wav::LoadReturnCode ReadFmtChunk(std::ifstream& wavFile, WaveFileData& wfd,
   }
 
   wfd.fmtChunk.numChannels = ReadShort(wavFile);
-  // HACK
-  // Note for future: for multi-channel files, samples are laid out with channel in the inner loop.
-  if (wfd.fmtChunk.numChannels != 1)
+  // Multi-channel files are laid out with channel in the inner loop (L,R,L,R,... for stereo).
+  // Mono and stereo (1-2 channels) are both supported -- callers that want independent
+  // per-channel data (true-stereo IR convolution) deinterleave it themselves. 3+ has no defined
+  // use in this codebase (no surround IR support) and is rejected outright.
+  if (wfd.fmtChunk.numChannels < 1 || wfd.fmtChunk.numChannels > 2)
   {
-    std::cerr << "Require mono (using for IR loading)" << std::endl;
+    std::cerr << "Require mono or stereo (1-2 channels)" << std::endl;
     return dsp::wav::LoadReturnCode::ERROR_NOT_MONO;
   }
 
@@ -224,17 +226,17 @@ dsp::wav::LoadReturnCode ReadFmtChunk(std::ifstream& wavFile, WaveFileData& wfd,
     bytesRead += cbSize + 2; // Don't forget the 2 for the cbSize itself!
   }
 
-  // Skip any extra bytes in the fmt chunk
-  // This should probably be a remainder of a dword so that we're mod-4
+  // Skip any extra bytes in the fmt chunk. fmtChunk.size is the RIFF-declared authoritative
+  // boundary of this chunk; some real-world capture/broadcast-wave tools pad a plain PCM (non-
+  // EXTENSIBLE) fmt chunk with extra reserved bytes we don't otherwise parse (e.g. a 40-byte fmt
+  // chunk with audioFormat == PCM, seen in the wild on IR captures bundled with a bext chunk --
+  // not itself a sign of a corrupt or unsupported file). Previously rejected as ERROR_INVALID_FILE
+  // once the padding hit 4+ bytes; there is nothing actually invalid about it, so just seek past
+  // whatever the chunk's own declared size says is left, same as every other unknown chunk in this
+  // file already gets skipped by ReadJunk().
   if (wfd.fmtChunk.size > bytesRead)
   {
-    const int extraBytes = wfd.fmtChunk.size - bytesRead;
-    if (extraBytes >= 4)
-    {
-      std::cerr << "More than 4 extra bytes in fmt chunk." << std::endl;
-      return dsp::wav::LoadReturnCode::ERROR_INVALID_FILE;
-    }
-    wavFile.ignore(extraBytes);
+    wavFile.ignore(wfd.fmtChunk.size - bytesRead);
   }
 
   // Store SR for final return
@@ -338,7 +340,8 @@ dsp::wav::LoadReturnCode ReadDataChunk(std::ifstream& wavFile, WaveFileData& wfd
   return dsp::wav::LoadReturnCode::SUCCESS;
 }
 
-dsp::wav::LoadReturnCode dsp::wav::Load(const char* fileName, std::vector<float>& audio, double& sampleRate)
+dsp::wav::LoadReturnCode dsp::wav::Load(const char* fileName, std::vector<float>& audio, double& sampleRate,
+                                        int& numChannels)
 {
   // FYI: https://www.mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
   // Open the WAV file for reading
@@ -405,6 +408,7 @@ dsp::wav::LoadReturnCode dsp::wav::Load(const char* fileName, std::vector<float>
     std::cerr << "Error: File does not contain expected data chunk." << std::endl;
     return dsp::wav::LoadReturnCode::ERROR_INVALID_FILE;
   }
+  numChannels = wfd.fmtChunk.numChannels;
   return dsp::wav::LoadReturnCode::SUCCESS;
 }
 
