@@ -308,7 +308,7 @@ private:
   inline void ReadSamples(double xBack, T** outputs, int s) const
   {
     double bufferReadPosition = mWritePos - xBack;
-    int bufferReadIndex = std::floor(bufferReadPosition);
+    int bufferReadIndex = static_cast<int>(std::floor(bufferReadPosition));
     double bufferFracPosition = 1.0 - (bufferReadPosition - bufferReadIndex);
 
     bufferReadIndex = (bufferReadIndex + kBufferSize) & (kBufferSize - 1);

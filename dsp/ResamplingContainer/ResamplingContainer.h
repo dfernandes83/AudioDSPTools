@@ -207,7 +207,7 @@ public:
       for (int c = 0; c < NCHANS; c++)
       {
         const T lastSample = populated2 > 0 ? outputs[c][populated2 - 1] : 0.0;
-        for (int i = populated2; i < nFrames; i++)
+        for (int i = static_cast<int>(populated2); i < nFrames; i++)
         {
           outputs[c][i] = lastSample;
         }
@@ -286,10 +286,10 @@ private:
 
   void ClearBuffers()
   {
-    memset(mScratchExternalInputData.Get(), 0.0f, DataSize(mMaxBlockSize));
+    memset(mScratchExternalInputData.Get(), 0, DataSize(mMaxBlockSize));
     const auto encapsulatedDataSize = DataSize(mMaxEncapsulatedBlockSize);
-    memset(mEncapsulatedInputData.Get(), 0.0f, encapsulatedDataSize);
-    memset(mEncapsulatedOutputData.Get(), 0.0f, encapsulatedDataSize);
+    memset(mEncapsulatedInputData.Get(), 0, encapsulatedDataSize);
+    memset(mEncapsulatedOutputData.Get(), 0, encapsulatedDataSize);
 
     if (mResampler1 != nullptr)
     {
