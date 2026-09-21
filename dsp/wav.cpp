@@ -46,7 +46,7 @@ struct WaveFileData
     struct Extensible
     {
       std::uint16_t validBitsPerSample;
-      std::uint16_t channelMask;
+      std::uint32_t channelMask; // WAVEFORMATEXTENSIBLE::dwChannelMask is a DWORD; it was truncated to 16 bits
       std::uint32_t subFormat; // PCM, IEEE
     } extensible;
   } fmtChunk;

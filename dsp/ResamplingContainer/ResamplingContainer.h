@@ -141,8 +141,9 @@ public:
     }
 
     {
-      mResampler1 = std::make_unique<LanczosResampler>(mInputSampleRate, mRenderingSampleRate);
-      mResampler2 = std::make_unique<LanczosResampler>(mRenderingSampleRate, mInputSampleRate);
+      // LanczosResampler takes float rates; the narrowing is intended and now explicit
+      mResampler1 = std::make_unique<LanczosResampler>(static_cast<float>(mInputSampleRate), static_cast<float>(mRenderingSampleRate));
+      mResampler2 = std::make_unique<LanczosResampler>(static_cast<float>(mRenderingSampleRate), static_cast<float>(mInputSampleRate));
 
       // Zeroes the scratch pointers so that we warm up with silence.
       ClearBuffers();
