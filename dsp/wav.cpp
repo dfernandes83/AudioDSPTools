@@ -303,8 +303,19 @@ dsp::wav::LoadReturnCode ReadDataChunk(std::ifstream& wavFile, WaveFileData& wfd
     return dsp::wav::LoadReturnCode::ERROR_INVALID_FILE;
   }
 
-  // Size of the data chunk, in bits.
+  // Size of the data chunk, in bytes.
   wfd.dataChunk.size = ReadInt(wavFile);
+
+  // Reject a data chunk that cannot be a whole number of frames, an empty one, or a bogus sample rate up
+  // front (hardening ported from upstream sdatkinson/AudioDSPTools #28). The IR path would otherwise
+  // resample with a zero/negative rate or silently drop a trailing partial stereo frame.
+  const auto bytesPerFrame = wfd.fmtChunk.numChannels * (wfd.fmtChunk.bitsPerSample / 8);
+  if (bytesPerFrame <= 0 || wfd.dataChunk.size <= 0 || wfd.dataChunk.size % bytesPerFrame != 0
+      || wfd.fmtChunk.sampleRate <= 0)
+  {
+    std::cerr << "Error: Invalid data chunk size or sample rate." << std::endl;
+    return dsp::wav::LoadReturnCode::ERROR_INVALID_FILE;
+  }
 
   const int audioFormat = GetAudioFormat(wfd);
   if (audioFormat == AUDIO_FORMAT_IEEE)
@@ -335,6 +346,13 @@ dsp::wav::LoadReturnCode ReadDataChunk(std::ifstream& wavFile, WaveFileData& wfd
   {
     std::cerr << "Error: Unsupported audio format: " << audioFormat << std::endl;
     return dsp::wav::LoadReturnCode::ERROR_UNSUPPORTED_FORMAT_OTHER;
+  }
+  // A data chunk that declares more bytes than the file holds leaves a zero-filled/garbage tail; refuse it
+  // rather than hand back a silently corrupted IR.
+  if (!wavFile.good())
+  {
+    std::cerr << "Error: Data chunk is truncated." << std::endl;
+    return dsp::wav::LoadReturnCode::ERROR_INVALID_FILE;
   }
   wfd.dataChunk.valid = true;
   return dsp::wav::LoadReturnCode::SUCCESS;
